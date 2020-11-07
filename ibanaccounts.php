@@ -47,6 +47,8 @@ function ibanaccounts_civicrm_iban_usages($iban, $contactId = false) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_tabs
  */
 function ibanaccounts_civicrm_tabs(&$tabs, $contactID) {
+  return;
+  
   $config = CRM_Ibanaccounts_Config::singleton();
   
   //unset the tab for iban accounts via custom fields and set our own tab for 
