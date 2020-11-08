@@ -13,12 +13,26 @@ class CRM_Ibanaccounts_Config {
   protected $custom_fields = array();
 
   protected $bicExtensionEnabled = false;
+  protected $IbanMembershipEnabled = false;
+  protected $IbanContributionshipEnabled = false;
   
   protected function __construct() {
     $this->custom_groups['IBAN'] = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'IBAN'));
-    $this->custom_groups['IBAN_Membership'] = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'IBAN_Membership'));
-    $this->custom_groups['IBAN_Contribution'] = civicrm_api3('CustomGroup', 'getsingle', array('name' => 'IBAN_Contribution'));
-    
+
+    //chek if IBAN Membership is enabled
+    $result = civicrm_api3('CustomGroup', 'get', array('name' => 'IBAN_Membership', 'is_active' => 1));
+    if ($result['count'] == 1){
+      $this->custom_groups['IBAN_Membership'] = reset($result['values']);
+      $this->IbanMembershipEnabled = true;
+    }
+
+    //check if IBAN Contribution is enabled
+    $result = civicrm_api3('CustomGroup', 'get', array('name' => 'IBAN_Contribution', 'is_active' => 1));
+    if ($result['count'] == 1){
+      $this->custom_groups['IBAN_Contribution'] = reset($result['values']);
+      $this->IbanContributionshipEnabled = true;
+    }
+
     //load all the fields for every custom group
     foreach($this->custom_groups as $gname => $group) {
       $this->custom_fields[$gname] = array();
@@ -73,6 +87,14 @@ class CRM_Ibanaccounts_Config {
     return $this->bicExtensionEnabled;
   }
   
+  public function isIbanMembershipEnabled(){
+    return $this->IbanMembershipEnabled;
+  }
+
+  public function isIbanContributionshipEnabled(){
+    return $this->IbanContributionshipEnabled;
+  }
+
   public function getIbanCustomGroupValue($field='id') {
     return $this->custom_groups['IBAN'][$field];
   }
@@ -97,6 +119,10 @@ class CRM_Ibanaccounts_Config {
     return $this->custom_fields['IBAN']['tnv'][$field];
   }
   
+  public function getDateChangedCustomFieldValue($field='id') {
+    return $this->custom_fields['IBAN']['datechanged'][$field];
+  }
+
   public function getIbanMembershipCustomFieldValue($field='id') {
     return $this->custom_fields['IBAN_Membership']['IBAN'][$field];
   }
