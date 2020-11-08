@@ -47,8 +47,7 @@ function ibanaccounts_civicrm_iban_usages($iban, $contactId = false) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_tabs
  */
 function ibanaccounts_civicrm_tabs(&$tabs, $contactID) {
-  return;
-  
+
   $config = CRM_Ibanaccounts_Config::singleton();
   
   //unset the tab for iban accounts via custom fields and set our own tab for 
@@ -87,9 +86,8 @@ function ibanaccounts_civicrm_tabs(&$tabs, $contactID) {
  * @param type $errors
  */
 function ibanaccounts_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
-  if ($formName == 'CRM_Contact_Form_CustomData') {
+  if ($formName == 'CRM_Contact_Form_CustomData') {    
     $config = CRM_Ibanaccounts_Config::singleton();
-    
     $groupId = $form->getVar('_groupID');
     if ($groupId != $config->getIbanCustomGroupValue('id')) {
       return;
@@ -104,17 +102,29 @@ function ibanaccounts_civicrm_validateForm( $formName, &$fields, &$files, &$form
       }
     }
   } elseif ($formName == 'CRM_Member_Form_Membership') {
-   $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
-   $membership->validateForm($fields, $files, $errors);
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanMembershipEnabled()) {
+      $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
+      $membership->validateForm($fields, $files, $errors);
+    }
   }
+
   if ($formName == 'CRM_Contribute_Form_Contribution') {
-   $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
-   $contribution->validateForm($fields, $files, $errors);
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanContributionshipEnabled()) {
+     $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
+     $contribution->validateForm($fields, $files, $errors);
+    }
   }
-   if ($formName == 'CRM_Member_Form_MembershipRenewal') {
-   $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
-   $membership->validateForm($fields, $files, $errors);
+
+  if ($formName == 'CRM_Member_Form_MembershipRenewal') {
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanMembershipEnabled()) {
+      $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
+      $membership->validateForm($fields, $files, $errors);
+    }
  }
+
 }
 
 /**
@@ -126,16 +136,25 @@ function ibanaccounts_civicrm_validateForm( $formName, &$fields, &$files, &$form
 function ibanaccounts_civicrm_buildForm($formName, &$form) {
  if ($formName == 'CRM_Member_Form_Membership') {
    //add template 
-   $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
-   $membership->parse();
+  $config = CRM_Ibanaccounts_Config::singleton();
+  if ($config->isIbanMembershipEnabled()) {
+    $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
+    $membership->parse();
+  }
  } 
  if ($formName == 'CRM_Member_Form_MembershipRenewal') {
-   $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
-   $membership->parse();
+   $config = CRM_Ibanaccounts_Config::singleton();
+   if ($config->isIbanMembershipEnabled()) {
+    $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
+    $membership->parse();
+   }
  }
  if ($formName == 'CRM_Contribute_Form_Contribution') {
-   $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
-   $contribution->parse();
+   $config = CRM_Ibanaccounts_Config::singleton();
+   if ($config->isIbanContributionshipEnabled()) {
+    $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
+    $contribution->parse();
+   }
  }
 }
 
@@ -147,16 +166,25 @@ function ibanaccounts_civicrm_buildForm($formName, &$form) {
  */
 function ibanaccounts_civicrm_postProcess( $formName, &$form ) {
   if ($formName == 'CRM_Member_Form_Membership') {
-   $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
-   $membership->postProcess();
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanMembershipEnabled()) {
+     $membership = new CRM_Ibanaccounts_Buildform_Membership($form);
+     $membership->postProcess();
+    }
   }
   if ($formName == 'CRM_Member_Form_MembershipRenewal') {
-   $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
-   $membership->postProcess();
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanMembershipEnabled()) {
+      $membership = new CRM_Ibanaccounts_Buildform_MembershipRenewal($form);
+      $membership->postProcess();
+    }
  }
   if ($formName == 'CRM_Contribute_Form_Contribution') {
-   $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
-   $contribution->postProcess();
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanContributionshipEnabled()) {
+      $contribution = new CRM_Ibanaccounts_Buildform_Contribution($form);
+      $contribution->postProcess();
+    }
  }
 }
 
@@ -170,9 +198,12 @@ function ibanaccounts_civicrm_postProcess( $formName, &$form ) {
  * @param type $objectRef
  */
 function ibanaccounts_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
-  if ($objectName == 'MembershipPayment') {
-    $membership_payment = new CRM_Ibanaccounts_Post_MembershipPayment();
-    $membership_payment->post($op, $objectRef);
+  if ($objectName == 'MembershipPayment' ) {
+    $config = CRM_Ibanaccounts_Config::singleton();
+    if ($config->isIbanMembershipEnabled()) {
+      $membership_payment = new CRM_Ibanaccounts_Post_MembershipPayment();
+      $membership_payment->post($op, $objectRef);
+    }
   }
 }
 
